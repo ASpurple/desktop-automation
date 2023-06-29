@@ -1,25 +1,37 @@
 {
-  "name": "desktop-automation",
-  "version": "1.0.0",
-  "description": "",
-  "type": "module",
-  "types": "./global.d.ts",
-  "main": "./dist/main.js",
-  "scripts": {
-    "dev": "tsc --project tsconfig.json & node ./addSuffix.js & node ./dist/main.js",
-    "build": "tsc --project tsconfig.json & node ./addSuffix.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+	"name": "desktop-automation",
+	"version": "1.0.0",
+	"description": "desktop automation",
+	"type": "module",
+	"types": "./global.d.ts",
+	"main": "./dist/main.js",
+	"scripts": {
+		"dev": "tsc --project tsconfig.json & node ./addSuffix.js & node ./dist/main.js",
+		"build": "tsc --project tsconfig.json & node ./addSuffix.js",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"dependencies": {
+		"image-decode": "^1.2.2",
+		"robotjs": "^0.6.0",
+		"screenshot-desktop": "^1.14.0"
+	},
+	"devDependencies": {
+		"@types/node": "^20.3.1",
+		"@types/screenshot-desktop": "^1.12.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ASpurple/desktop-automation.git"
+	},
   "author": "zyc",
-  "license": "ISC",
-  "dependencies": {
-    "image-decode": "^1.2.2",
-    "robotjs": "^0.6.0",
-    "screenshot-desktop": "^1.14.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.3.1",
-    "@types/screenshot-desktop": "^1.12.0"
-  },
-  "keywords": ["desktop", "automation", "screenshot", "screen", "capture", "pattern", "recognition"]
+	"license": "ISC",
+	"keywords": [
+		"desktop",
+		"automation",
+		"screenshot",
+		"screen",
+		"capture",
+		"pattern",
+		"recognition"
+	]
 }
