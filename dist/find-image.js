@@ -9,6 +9,7 @@ function format(buf, rowSize) {
     }
     return result;
 }
+// similarity 相似度，0 ~ 1 的值，数值越大比对越精确
 export function findSubPicture(src, dst, similarity) {
     var sw = src.width;
     var sh = src.height;
@@ -60,6 +61,7 @@ export function decodeImageFromBase64(base) {
     var buf = Buffer.from(base, "base64");
     return decode(buf);
 }
+// similarity 相似度，0 ~ 1 的值，数值越大比对越精确
 export function findFromScreen(dst, similarity) {
     return new Promise(function (resolve) {
         screenshotDesktop.listDisplays().then(function (displays) {
@@ -71,6 +73,7 @@ export function findFromScreen(dst, similarity) {
         });
     });
 }
+// similarity 相似度，0 ~ 1 的值，数值越大比对越精确
 export function findFromScreenByBase64(dst, similarity) {
     return findFromScreen(decodeImageFromBase64(dst), similarity);
 }

@@ -1,9 +1,8 @@
 {
 	"name": "desktop-automation",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"description": "desktop automation",
 	"type": "module",
-	"types": "./global.d.ts",
 	"main": "./dist/main.js",
 	"scripts": {
 		"dev": "tsc --project tsconfig.json & node ./addSuffix.js & node ./dist/main.js",

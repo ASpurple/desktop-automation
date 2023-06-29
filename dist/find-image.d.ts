@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="../index.d.ts" />
 import screenshotDesktop from 'screenshot-desktop';
 export declare function findSubPicture(src: FormatImage, dst: FormatImage, similarity: number): [number, number] | null;
 export declare function decodeFromBuffer(buf: Buffer): FormatImage;
