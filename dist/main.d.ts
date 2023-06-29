@@ -1,3 +1,4 @@
+/// <reference types="node" />
 export * from "./find-image.js";
 export declare function setKeyboardDelay(ms: number): void;
 export declare function keyTap(key: string, modifier?: string | string[]): void;
@@ -21,3 +22,5 @@ export declare function getScreenSize(): {
     width: number;
     height: number;
 };
+export declare function openDesktop(): void;
+export declare function findAndClick(dst: Buffer | string, button?: "left" | "right", double?: boolean): Promise<unknown>;

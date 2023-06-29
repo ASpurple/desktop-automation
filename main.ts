@@ -1,4 +1,7 @@
+// robotjs API 文档：https://robotjs.io/docs/syntax
+
 import robot from "robotjs";
+import { find } from "./find-image.js";
 export * from "./find-image.js";
 
 export function setKeyboardDelay(ms: number) {
@@ -50,4 +53,20 @@ export function getPixelColor(x: number, y: number) {
 }
 export function getScreenSize() {
 	return robot.getScreenSize();
+}
+
+// only for windows
+export function openDesktop() {
+	keyTap("d", "command");
+}
+
+export function findAndClick(dst: Buffer | string, button: "left" | "right" = "left", double = false) {
+	return new Promise((resolve) => {
+		find(dst).then((pos) => {
+			if (!pos) return;
+			moveMouse(pos[0], pos[1]);
+			mouseClick(button, double);
+			resolve(null);
+		});
+	});
 }

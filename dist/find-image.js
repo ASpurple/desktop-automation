@@ -1,5 +1,5 @@
-import decode from 'image-decode';
-import screenshotDesktop from 'screenshot-desktop';
+import decode from "image-decode";
+import screenshotDesktop from "screenshot-desktop";
 import fs from "fs";
 function format(buf, rowSize) {
     rowSize *= 4;
@@ -8,6 +8,10 @@ function format(buf, rowSize) {
         result.push(buf.slice(i, i + rowSize));
     }
     return result;
+}
+export var screenshot = screenshotDesktop;
+export function getDisplays() {
+    return screenshotDesktop.listDisplays();
 }
 // similarity 相似度，0 ~ 1 的值，数值越大比对越精确
 export function findSubPicture(src, dst, similarity) {
@@ -63,21 +67,66 @@ export function decodeImageFromBase64(base) {
 }
 // similarity 相似度，0 ~ 1 的值，数值越大比对越精确
 export function findFromScreen(dst, similarity) {
+    if (similarity === void 0) { similarity = 0.95; }
     return new Promise(function (resolve) {
         screenshotDesktop.listDisplays().then(function (displays) {
-            screenshotDesktop({ screen: displays[0].id, format: "png" })
-                .then(function (img) {
-                var screen = decode(img);
-                resolve(findSubPicture(screen, dst, similarity));
-            });
+            function find(i) {
+                if (i >= displays.length) {
+                    resolve(null);
+                    return;
+                }
+                var d = displays[i];
+                screenshotDesktop({ screen: d.id, format: "png" }).then(function (img) {
+                    var res = findSubPicture(decode(img), dst, similarity);
+                    if (res) {
+                        resolve(res);
+                    }
+                    else {
+                        find(i + 1);
+                    }
+                });
+            }
+            find(0);
         });
     });
 }
-// similarity 相似度，0 ~ 1 的值，数值越大比对越精确
-export function findFromScreenByBase64(dst, similarity) {
-    return findFromScreen(decodeImageFromBase64(dst), similarity);
+var defaultOptions = {
+    similarity: 0.95,
+    retry: 30,
+    retryInterval: 1000
+};
+export function find(dst, ops) {
+    if (ops === void 0) { ops = defaultOptions; }
+    var buf;
+    if (typeof dst === "string") {
+        var exists = fs.existsSync(dst);
+        if (exists) {
+            var stat = fs.statSync(dst);
+            if (stat.isFile()) {
+                buf = fs.readFileSync(dst);
+            }
+        }
+        if (!buf)
+            buf = Buffer.from(dst, "base64");
+    }
+    else {
+        buf = dst;
+    }
+    var formatImage = decode(buf);
+    var timer = null;
+    return new Promise(function (resolve) {
+        function f(times) {
+            if (timer)
+                clearTimeout(timer);
+            findFromScreen(formatImage, ops.similarity).then(function (position) {
+                if (position || times >= ops.retry) {
+                    resolve(position);
+                }
+                else {
+                    timer = setTimeout(f, ops.retryInterval, times + 1);
+                }
+            });
+        }
+        f(1);
+    });
 }
-export function getDisplays() {
-    return screenshotDesktop.listDisplays();
-}
-export var screenshot = screenshotDesktop;

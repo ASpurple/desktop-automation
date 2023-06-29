@@ -1,5 +1,5 @@
-import decode from 'image-decode';
-import screenshotDesktop from 'screenshot-desktop';
+import decode from "image-decode";
+import screenshotDesktop from "screenshot-desktop";
 import fs from "fs";
 
 function format(buf: Uint8Array, rowSize: number) {
@@ -9,6 +9,12 @@ function format(buf: Uint8Array, rowSize: number) {
 		result.push(buf.slice(i, i + rowSize));
 	}
 	return result;
+}
+
+export const screenshot = screenshotDesktop;
+
+export function getDisplays() {
+	return screenshotDesktop.listDisplays();
 }
 
 // similarity 相似度，0 ~ 1 的值，数值越大比对越精确
@@ -59,34 +65,71 @@ export function decodeFromBuffer(buf: Buffer) {
 }
 
 export function decodeImageFromFilePath(p: string): FormatImage {
-    return decode(fs.readFileSync(p));
+	return decode(fs.readFileSync(p));
 }
 
 export function decodeImageFromBase64(base: string): FormatImage {
-    const buf = Buffer.from(base, "base64");
-    return decode(buf);
+	const buf = Buffer.from(base, "base64");
+	return decode(buf);
 }
 
 // similarity 相似度，0 ~ 1 的值，数值越大比对越精确
-export function findFromScreen(dst: FormatImage, similarity: number): Promise<[number, number] | null> {
-    return new Promise((resolve) => {
-        screenshotDesktop.listDisplays().then((displays) => {
-            screenshotDesktop({ screen: displays[0].id, format: "png" })
-              .then((img) => {
-                const screen = decode(img);
-                resolve(findSubPicture(screen, dst, similarity));
-              });
-          });
-    });
+export function findFromScreen(dst: FormatImage, similarity: number = 0.95): Promise<[number, number] | null> {
+	return new Promise((resolve) => {
+		screenshotDesktop.listDisplays().then((displays) => {
+			function find(i: number) {
+				if (i >= displays.length) {
+					resolve(null);
+					return;
+				}
+				const d = displays[i];
+				screenshotDesktop({ screen: d.id, format: "png" }).then((img) => {
+					const res = findSubPicture(decode(img), dst, similarity);
+					if (res) {
+						resolve(res);
+					} else {
+						find(i + 1);
+					}
+				});
+			}
+			find(0);
+		});
+	});
 }
 
-// similarity 相似度，0 ~ 1 的值，数值越大比对越精确
-export function findFromScreenByBase64(dst: string, similarity: number): Promise<[number, number] | null> {
-	return findFromScreen(decodeImageFromBase64(dst), similarity);
-}
+const defaultOptions = {
+	similarity: 0.95,
+	retry: 30, // 未找到的情况下重试次数
+	retryInterval: 1000, // 重试时间间隔
+};
 
-export function getDisplays() {
-	return screenshotDesktop.listDisplays();
+export function find(dst: Buffer | string, ops = defaultOptions): Promise<[number, number] | null> {
+	let buf: Buffer | undefined;
+	if (typeof dst === "string") {
+		const exists = fs.existsSync(dst);
+		if (exists) {
+			const stat = fs.statSync(dst);
+			if (stat.isFile()) {
+				buf = fs.readFileSync(dst);
+			}
+		}
+		if (!buf) buf = Buffer.from(dst, "base64");
+	} else {
+		buf = dst;
+	}
+	const formatImage = decode(buf);
+	let timer: any = null;
+	return new Promise((resolve) => {
+		function f(times: number) {
+			if (timer) clearTimeout(timer);
+			findFromScreen(formatImage, ops.similarity).then((position) => {
+				if (position || times >= ops.retry) {
+					resolve(position);
+				} else {
+					timer = setTimeout(f, ops.retryInterval, times + 1);
+				}
+			});
+		}
+		f(1);
+	});
 }
-
-export const screenshot = screenshotDesktop;
