@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="../index.d.ts" />
 import screenshotDesktop from "screenshot-desktop";
 export declare const screenshot: typeof screenshotDesktop;
 export declare function getDisplays(): Promise<{
