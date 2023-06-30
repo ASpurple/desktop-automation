@@ -60,13 +60,20 @@ export function openDesktop() {
 	keyTap("d", "command");
 }
 
-export function findAndClick(dst: Buffer | string, button: "left" | "right" = "left", double = false) {
+export function findAndClick(dst: Buffer | string, button: "left" | "right" = "left", double = false, smooth = true) {
 	return new Promise((resolve) => {
 		find(dst).then((pos) => {
-			if (!pos) return;
-			moveMouse(pos[0], pos[1]);
+			if (!pos) {
+				resolve(pos);
+				return;
+			}
+			if (smooth) {
+				moveMouseSmooth(pos[0], pos[1]);
+			} else {
+				moveMouse(pos[0], pos[1]);
+			}
 			mouseClick(button, double);
-			resolve(null);
+			resolve(pos);
 		});
 	});
 }
